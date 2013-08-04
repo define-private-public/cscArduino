@@ -15,3 +15,13 @@
 *.exe
 *.out
 *.app
+
+# for when writing code
+*.sw*
+
+# Binary files that we don't want to see
+examples/mpu_data
+examples/mpu_opengl_cube
+examples/pong
+examples/random_bytes
+examples/rgb_led_driver
