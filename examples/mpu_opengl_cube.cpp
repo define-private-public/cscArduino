@@ -22,6 +22,8 @@ using std::vector;
 #define IS_ALIVE 0x1	// Unused (maybe for future purposes)
 #define REQ_ALL 0x2		// Make a request for all of the MPU data
 
+#define FORCE_OF_GRAVITY 32767.0f		// 1g of force for the MPU
+
 
 /*== MPU 6050 structs and functions ==*/
 typedef struct mpu_6050_t {
@@ -335,6 +337,11 @@ void updateScene(int delta) {
 	if (mpu.error != 0)
 		perror("DATA ERROR\n");
 	else {
+		// NOTE: This here used to use Gyro data for the rotation, but it didn't
+		//		 Produce the results that I wanted, so I decided to use the
+		//		 normalization of the force of gravity on the MPU to orient it.
+
+/*
 		// Do claibration
 		if (!calibrated)  {
 			// It's kind of, um, the "poor man's calibration."
@@ -362,6 +369,26 @@ void updateScene(int delta) {
 		percent = (float)(mpu.z_gyro - calibration.z_gyro);
 		percent /= 32767.0f;
 		zRot += scale * percent;
+*/
+		float xComp, yComp, zComp;
+		xComp = (float)mpu.x_accel;
+		yComp = (float)mpu.y_accel;
+		zComp = (float)mpu.z_accel;
+
+		// Reusing the vertex class as a vector normal
+		vertex3f normal((float)mpu.x_accel,	(float)mpu.y_accel,
+						(float)mpu.z_accel, NULL);
+		float length = sqrt((normal.x * normal.x) + (normal.y * normal.y) +
+							(normal.z * normal.z));
+
+		// Perform the normalization
+		normal.x /= length;
+		normal.y /= length;
+		normal.z /= length;
+		
+		xRot = 180.0f * normal.y;
+		yRot = -180.0f * normal.x;
+		zRot = 180.0f * normal.z;
 	}
 }
 
